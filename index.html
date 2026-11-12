@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>숨 (Soom) · Pleos Connect 차량용 앱</title>
+<style>
+  @font-face { font-family: "Pretendard"; src: url("app/src/main/res/font/pretendard_regular.otf"); font-weight: 400; }
+  @font-face { font-family: "Pretendard"; src: url("app/src/main/res/font/pretendard_bold.otf"); font-weight: 700; }
+  :root { --ink:#191F28; --sub:#4E5968; --faint:#8B95A1; --blue:#3182F6; --red:#F04452; --line:#E5E8EB; --bg:#F2F4F6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Pretendard", system-ui, sans-serif; color: var(--ink); background: #fff; line-height: 1.6; }
+  main { max-width: 980px; margin: 0 auto; padding: 48px 20px 80px; }
+  h1 { font-size: 56px; margin: 0; }
+  .lead { font-size: 20px; color: var(--sub); margin: 8px 0 28px; }
+  video { width: 100%; border-radius: 14px; background: #000; display: block; }
+  .row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+  .row video.short { max-height: 520px; object-fit: contain; }
+  h2 { font-size: 24px; margin: 44px 0 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 16px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; }
+  th { color: var(--sub); font-weight: 400; }
+  td.r { color: var(--red); font-weight: 700; } td.b { color: var(--blue); font-weight: 700; }
+  .links a { display: inline-block; margin: 6px 10px 6px 0; padding: 10px 16px; border-radius: 10px; background: var(--bg); color: var(--ink); text-decoration: none; }
+  .links a.main { background: var(--blue); color: #fff; }
+  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .shots img { width: 100%; border-radius: 8px; border: 1px solid var(--line); }
+  .note { color: var(--faint); font-size: 14px; }
+  @media (max-width: 760px) { .row, .shots { grid-template-columns: 1fr; } h1 { font-size: 44px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>숨</h1>
+  <p class="lead">기침하는 사람이 탄 자리를 누르면, 차가 먼저 묻고 바깥 공기로 바꿔 같이 탄 사람의 추정 감염 위험을 줄이는 Pleos Connect 앱입니다. 같은 엔진이 탁한 공기, 미세먼지, 앉은 시간도 자리마다 챙깁니다.</p>
+
+  <div class="row">
+    <div>
+      <video src="docs/demo/soom_demo.mp4" controls preload="metadata" playsinline></video>
+      <p class="note">시연 영상 2분 5초. 인물과 풍경은 AI로 만들었고, 앱 화면은 실제 프로토타입 캡처입니다.</p>
+    </div>
+    <div>
+      <video class="short" src="docs/demo/soom_short.mp4" controls preload="metadata" playsinline></video>
+      <p class="note">숏폼 57초</p>
+    </div>
+  </div>
+
+  <div class="links">
+    <a class="main" href="docs/sim/index.html">브라우저에서 바로 체험</a>
+    <a href="https://github.com/soom-pleos/soom">GitHub 저장소</a>
+    <a href="https://github.com/soom-pleos/soom/tree/main/apk">APK 내려받기</a>
+  </div>
+
+  <h2>90분, 기침하는 1명과 같이 탄 3명</h2>
+  <table>
+    <tr><th></th><th>내기순환 그대로</th><th>가끔 환기 (5분 내기, 2분 외기)</th><th>숨: 바깥 공기 계속</th></tr>
+    <tr><td>한 명의 추정 감염 위험</td><td class="r">98.7%</td><td>59.8%</td><td class="b">23.4%</td></tr>
+    <tr><td>셋 중 기대 감염자 수</td><td class="r">2.96명</td><td>1.79명</td><td class="b">0.70명</td></tr>
+    <tr><td>운전자가 하는 일</td><td>버튼을 직접 찾기</td><td>버튼을 여러 번</td><td class="b">"응" 한마디</td></tr>
+  </table>
+  <p class="note">Knibbs, Morawska, Bell (2012), Epidemiology and Infection 140(3)의 Wells-Riley 식과 같은 논문의 실측 공기 교환율(2005년형 골프, 100km/h)로 계산한 추정치입니다. 공기가 고루 섞인다고 본 값이며 의학적 효과를 보장하지 않습니다.</p>
+
+  <h2>앱 화면</h2>
+  <div class="shots">
+    <img src="docs/shots/25_자리설정_기침.png" alt="자리 설정에서 기침해요 고르기">
+    <img src="docs/shots/26_제안_기침.png" alt="출발 직후 바깥 공기로 계속 둘지 묻기">
+    <img src="docs/shots/27_도착카드_기침.png" alt="도착 카드의 추정 감염 위험">
+  </div>
+  <p class="note">화면 1280×720, Pleos Connect 에뮬레이터 v2.1.0 기준. 자세한 실행 방법은 저장소 README에 있습니다.</p>
+</main>
+</body>
+</html>

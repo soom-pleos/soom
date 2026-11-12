@@ -2,6 +2,7 @@
 
 기침하는 사람이 탄 자리를 누르면, 차가 먼저 묻고 바깥 공기로 바꿔 같이 탄 사람의 추정 감염 위험을 줄이는 Pleos Connect 앱입니다. 같은 엔진이 탁한 공기, 미세먼지, 앉은 시간도 자리마다 챙깁니다.
 
+- 소개 페이지(영상 바로 재생, 브라우저 체험): https://soom-pleos.github.io/soom/
 - 시연 영상(2분 5초): [docs/demo/soom_demo.mp4](docs/demo/soom_demo.mp4)
 - 숏폼(57초, 세로): [docs/demo/soom_short.mp4](docs/demo/soom_short.mp4)
 - APK: [apk/안준영_숨_release.apk](apk/) (v0.8.0, 설치 방법은 아래 "APK" 절)
