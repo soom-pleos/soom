@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 밤 테마. AAOS 가 야간에 자동으로 바꾼다. 색 값은 ui/theme/Tokens.kt 의 밤 배경과 같다 -->
+    <style name="Theme.Kkaeugi" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0B0D10</item>
+        <item name="android:statusBarColor">#0B0D10</item>
+        <item name="android:navigationBarColor">#0B0D10</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

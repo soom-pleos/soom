@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Pleos Vehicle SDK 조회 퍼미션 (상수명은 vehicle-data PleosPermission 클래스 기준) -->
+    <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />    <!-- Gear, Brake, Odometer(트립 시간), 핸들 각도(registerSteeringWheelAngle) -->
+    <uses-permission android:name="pleos.car.permission.CAR_SEATS" />    <!-- 좌석 점유, 안전벨트 체결 → 탑승 인원(숨 모델) -->
+    <uses-permission android:name="pleos.car.permission.CAR_LIGHTS" />   <!-- TurnSignal, 하향등 -->
+    <uses-permission android:name="pleos.car.permission.CAR_WINDOWS" />  <!-- Wiper, 창문 위치 읽기 -->
+    <uses-permission android:name="pleos.car.permission.CAR_SAFETY" />   <!-- Telltales(DRIVER_ATTENTION, LKA/LFA) -->
+    <uses-permission android:name="pleos.car.permission.CAR_CLIMATE" />  <!-- 내기순환, 풍량, 온도 읽기 -->
+    <!-- 텔테일(registerTelltales, getTelltalesInfo)은 CAR_SAFETY 가 아니라 PRIVATE_CAR_SAFETY 를 요구한다(Vehicle AAR javap 확인). 거부되면 졸음 트리거만 빠지고 나머지는 동작 -->
+    <uses-permission android:name="pleos.car.permission.PRIVATE_CAR_SAFETY" />
+    <!-- 제어 퍼미션: 운전자 동의 뒤에만 쓴다 -->
+    <uses-permission android:name="pleos.car.permission.CONTROL_CAR_CLIMATE" /> <!-- 외기 전환, 풍량, 온도 -->
+    <uses-permission android:name="pleos.car.permission.CONTROL_CAR_WINDOWS" /> <!-- 운전석 창문 15% -->
+    <!-- NaviHelper: 경유지 추가/삭제(NAVI_ROUTE_SEARCH), 현재 위치/경로 정보 조회(NAVI_ROUTE) -->
+    <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
+    <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
+    <!-- FusedLocation SDK (내비 위치가 없을 때 현재 위치/heading 폴백) -->
+    <uses-permission android:name="pleos.car.permission.FUSED_LOCATION" />
+    <!-- Pleos TTS/STT 서비스 -->
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
+    <uses-permission android:name="pleos.car.permission.STT_SERVICE" />
+    <!-- 음성/네트워크 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 화면 밖에서도 유지(실험, 개발자 토글, 기본 꺼짐): 포그라운드 서비스 하나로 프로세스만 붙든다. 토글이 꺼져 있으면 쓰지 않는다 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- FusedLocation/STT AAR 이 required=true 로 선언해 폰·일반 AVD 설치가 거부되던 것을 false 로 덮는다 -->
+    <uses-feature android:name="android.hardware.type.automotive" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.Kkaeugi"
+        android:allowBackup="false"
+        android:supportsRtl="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode">
+            <!-- 주행 중에도 쓰는 화면이다(큰 글자, 스크롤 없음, 응/괜찮아 두 버튼). 주의분산 최적화 액티비티로 표시한다 -->
+            <meta-data android:name="distractionOptimized" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- Gleo Interface: Gleo AI 가 assets/schema.json 의 함수를 부를 때 함수 이름을 action 으로 한 방송을 보낸다(component "service").
+             함수마다 action 필터를 하나씩 둔다(Pleos 문서 "Delivering the Schema to Gleo"). 다른 앱(Gleo AI)이 보내므로 exported 다.
+             adb 로도 같은 경로를 부를 수 있다: adb shell am broadcast -n ai.kkaeugi.app/.gleo.GleoReceiver -a CHECK_CABIN_STATUS -->
+        <receiver android:name=".gleo.GleoReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="VENTILATE_CABIN" />
+                <action android:name="CHECK_CABIN_STATUS" />
+                <action android:name="ADD_REST_STOP" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+        <!-- adb 로 부르는 실측 수신기. 제어 검증은 차 값을 실제로 바꿨다가 되돌린다. DUMP 퍼미션을 가진 쪽(adb shell, 시스템)만 보낼 수 있다:
+             action 은 ai.kkaeugi.app.VERIFY, 문자열 extra what 에 all, fresh, fan, window, result, diag, diagresult, state, seats, help 가운데 하나
+             (명령은 README 의 "에뮬레이터에서 확인하는 법") -->
+        <receiver android:name=".gleo.VerifyReceiver" android:exported="true" android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="ai.kkaeugi.app.VERIFY" />
+            </intent-filter>
+        </receiver>
+        <!-- 제어 검증이 도는 동안만 프로세스를 붙드는 서비스(알림 없음, 하는 일 없음). 검증이 방송 수신기의 제한 시간보다 길어도 원복까지 끝내려고 둔다 -->
+        <service android:name=".gleo.VerifyHoldService" android:exported="false" />
+        <!-- 개발자 토글 "화면 밖에서도 유지(실험)"이 켜져 있을 때만 MainActivity 가 시작한다. 진행 알림 1개, 버튼 없음 -->
+        <service
+            android:name=".KeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="운전 중 다른 앱(내비)이 앞에 있는 동안 실내 공기 추정과 환기 제안을 이어 가기 위해 프로세스를 유지" />
+        </service>
+    </application>
+</manifest>

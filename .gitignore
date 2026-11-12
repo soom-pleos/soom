@@ -1,0 +1,24 @@
+# Gradle / Kotlin build output
+build/
+.gradle/
+.kotlin/
+*/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+captures/
+.DS_Store
+
+# 작업용 문서 디렉터리 (저장소에 올리지 않음)
+docs/submission/
+docs/review/
+# 발표 준비와 제출 점검표도 공개하지 않음 (작업 저장소에는 추적)
+docs/PT.md
+docs/SUBMISSION_CHECKLIST.md
+
+# 임시 보관
+/trash/
+
+# APK 는 공모전 제출 규칙상 저장소에 포함한다 (apk/*.apk). 제외하지 않음.

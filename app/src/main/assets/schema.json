@@ -1,0 +1,52 @@
+{
+  "packageName": "ai.kkaeugi.app",
+  "appDescription": "Estimates cabin air from the number of occupants and helps ventilate, rest, and track sitting time while driving.",
+  "version": "0.7.3",
+  "actionCalls": [
+    {
+      "type": "function",
+      "function": {
+        "component": "service",
+        "name": "VENTILATE_CABIN",
+        "description": "Switches the car to outside air for a short time and then restores the previous air setting.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "component": "service",
+        "name": "CHECK_CABIN_STATUS",
+        "description": "Reports the estimated cabin air status or how long the occupants have been seated.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "Which status to report: cabin air or sitting time.",
+              "enum": ["air", "sitting"]
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "component": "service",
+        "name": "ADD_REST_STOP",
+        "description": "Adds the nearest rest area ahead in the driving direction as a waypoint.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>깨우기 시뮬레이터</title>
+<link rel="icon" href="data:,">
+<!--
+  깨우기 브라우저 시뮬레이터. 파일 하나로 동작하고 외부로 요청을 보내지 않는다.
+  판단 엔진: engine/src/main/kotlin (앱과 같은 소스)을 Kotlin/JS 로 컴파일해 아래 첫 번째 script 에 그대로 넣었다.
+  만드는 법: websim/build.sh
+-->
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="top">
+  <div class="intro">
+    <h1 data-i18n="title">깨우기 시뮬레이터</h1>
+    <p id="desc" data-i18n="desc"></p>
+  </div>
+  <div class="top-ctl">
+    <button class="key" id="btnDemo" type="button"></button>
+    <button class="key" id="btnTrust" type="button"></button>
+    <button class="key" id="btnReset" type="button" data-i18n="btnReset">처음으로</button>
+    <div class="speed">
+      <div class="seg" id="segSpeed" role="group" aria-label="속도" aria-describedby="speedNote">
+        <button type="button" data-speed="real" aria-pressed="false" data-i18n="speedReal">실제 속도</button>
+        <button type="button" data-speed="demo" aria-pressed="true" data-i18n="speedDemo">60배</button>
+      </div>
+      <p class="tip" id="speedNote" role="tooltip"></p>
+    </div>
+    <div class="seg" id="segLang" role="group" aria-label="Language">
+      <button type="button" data-lang="ko" lang="ko" aria-pressed="true">한국어</button>
+      <button type="button" data-lang="en" lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+<section class="plan-col" aria-labelledby="planTitle">
+  <h2 class="sr" id="planTitle" data-i18n="planTitle">차 실내</h2>
+  <div class="plan" id="plan">
+    <svg id="planSvg" aria-hidden="true" focusable="false"></svg>
+    <div class="seats" id="seats">
+      <button type="button" class="seat" data-seat="0" disabled aria-pressed="true"></button>
+      <button type="button" class="seat" data-seat="1" aria-pressed="false"></button>
+      <button type="button" class="seat" data-seat="2" aria-pressed="false"></button>
+      <button type="button" class="seat" data-seat="3" aria-pressed="false"></button>
+      <button type="button" class="seat" data-seat="4" aria-pressed="false"></button>
+    </div>
+    <div class="readout" id="readout" aria-live="off">
+      <div class="ppm" id="ppmNum">--</div>
+      <div class="ppm-l" data-i18n="ppmEst">ppm 추정</div>
+      <div class="lim"><div class="lim-track"><div class="lim-fill" id="limFill"></div></div><div class="lim-t" id="limText"></div></div>
+    </div>
+    <div class="hvac" id="hvac" role="group" aria-labelledby="hvacName">
+      <span class="sr" id="hvacName" data-i18n="hvac">공조</span>
+      <button type="button" class="key hv" id="hvRecirc" data-ctl="recirc" data-air="fresh"><span class="dot" aria-hidden="true"></span><span id="hvT">외기</span></button>
+      <div class="hv-row" data-ctl="fan">
+        <button type="button" class="key sq" id="fanDn">-</button><span class="hv-v"><span class="hv-l" data-i18n="fan">풍량</span><span id="fanV"></span></span><button type="button" class="key sq" id="fanUp">+</button>
+      </div>
+      <div class="hv-row" data-ctl="temp">
+        <button type="button" class="key sq" id="tempDn">-</button><span class="hv-v"><span class="hv-l" data-i18n="temp">온도</span><span id="tempV"></span></span><button type="button" class="key sq" id="tempUp">+</button>
+      </div>
+    </div>
+    <div class="win" id="winCtl" data-ctl="window" role="group" aria-labelledby="winName">
+      <span class="win-l"><span id="winName" data-i18n="winLabel">운전석 창문</span> <span class="win-v" id="winV"></span></span>
+      <span class="win-b">
+        <button type="button" class="key sq" id="winDn">&#9660;</button><button type="button" class="key sq" id="winUp">&#9650;</button>
+      </span>
+    </div>
+  </div>
+  <p class="plan-foot" id="planFoot" aria-live="polite"></p>
+</section>
+
+<section class="hu-col">
+  <div class="bezel">
+    <div class="screen-wrap" id="screenWrap">
+      <div class="car" id="car">
+        <div class="car-main">
+
+          <!-- 주행 중 홈 -->
+          <div class="home" id="home" hidden>
+            <div class="topbar">
+              <div><div class="name">깨우기</div><div class="state" id="hState"></div></div>
+              <div class="said" id="hSaid"></div>
+              <div><span class="pill warn" data-i18n="simPill">브라우저 시뮬레이터</span></div>
+            </div>
+            <div class="home-row">
+              <section class="card gauge-card">
+                <div class="gauge-head">
+                  <div class="t" data-i18n="gaugeTitle">실내 공기 (CO2 추정)</div>
+                  <div class="occ" id="occ"></div>
+                </div>
+                <div class="gauge-box"><svg id="gauge" viewBox="0 0 702 360" role="img" aria-label="CO2"></svg></div>
+                <div class="gauge-line" id="gLine"></div>
+                <button class="fresh-btn" id="btnFresh" type="button" hidden></button>
+              </section>
+              <div class="side">
+                <section class="card">
+                  <div class="ct" data-i18n="tripTitle">트립 시간</div>
+                  <div class="trip-v" id="tripV"></div>
+                  <div class="pills" id="tripPills"></div>
+                </section>
+                <section class="card" id="stopCard">
+                  <div class="ct" id="stopTitle"></div>
+                  <div class="stop-row" id="stopRow">
+                    <div class="l"><div class="stop-route" id="stopRoute"></div><div class="stop-name" id="stopName"></div></div>
+                    <div class="stop-km" id="stopKm"></div>
+                  </div>
+                  <div class="stop-none" id="stopNone" data-i18n="stopNone" hidden>전방 80km 안에 같은 방향 쉼터 없음</div>
+                </section>
+                <section class="card">
+                  <div class="ct" data-i18n="todayTitle">오늘</div>
+                  <div class="today-l" id="today1"></div>
+                  <div class="today-l" id="today2"></div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <!-- 정차(대기/도착) 화면 -->
+          <div class="idle" id="idle">
+            <div class="topbar">
+              <div><div class="name">깨우기</div><div class="state" id="iState"></div></div>
+              <div class="said"></div>
+              <div><span class="pill warn" data-i18n="simPill">브라우저 시뮬레이터</span></div>
+            </div>
+            <div class="idle-cards">
+              <section class="card" style="flex:1">
+                <div class="ct" data-i18n="tripTitle">트립 시간</div>
+                <div class="idle-v" id="iTrip"></div>
+                <div class="idle-s" id="iTripS"></div>
+              </section>
+              <section class="card" style="flex:1.4">
+                <div class="ct" id="iAirT"></div>
+                <div class="idle-v"><span id="iPpm">--</span> <small data-i18n="ppmEst">ppm 추정</small></div>
+                <div class="idle-s" id="iAirS"></div>
+              </section>
+              <section class="card" style="flex:1.3">
+                <div class="ct" data-i18n="stopPlain">다음 쉼터</div>
+                <div class="idle-v" id="iStop"></div>
+                <div class="idle-s" id="iStopS"></div>
+              </section>
+            </div>
+            <div class="idle-mid">
+              <div class="idle-big" data-i18n="idleBig">기어를 D 로 바꾸면 시작합니다</div>
+              <div class="idle-sub" id="idleSub"></div>
+              <div class="idle-said" id="iSaid"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="runbar" id="runbar" hidden><span class="run-text" id="runText"></span><button class="run-cancel" id="runCancel" type="button" hidden></button></div>
+        <div class="evidence" id="evidence" hidden></div>
+
+        <!-- 제안 오버레이 -->
+        <div class="overlay" id="proposal" hidden>
+          <div class="p-say">
+            <div class="p-text" id="pText"></div>
+            <div class="en-line" id="pEn" hidden></div>
+            <div class="p-info" id="pInfo"></div>
+          </div>
+          <div class="p-btns">
+            <button class="p-yes" id="pYes" type="button"></button>
+            <button class="p-no" id="pNo" type="button"><span id="pNoT"></span><i class="p-bar" id="pBar" hidden></i></button>
+          </div>
+        </div>
+
+        <!-- 쉼 카드 -->
+        <div class="overlay" id="rest" hidden>
+          <div class="r-title" id="rTitle"></div>
+          <div class="en-line" id="rEn" hidden></div>
+          <div class="r-count" id="rCount"></div>
+          <div class="r-hint" data-i18n="restHint">기어 D 로 바꾸면 돌아갑니다</div>
+          <div class="r-ask" id="rAsk" hidden>
+            <div class="r-q"><span id="rQ"></span><span class="en-line" id="rQEn" hidden></span></div>
+            <div class="r-btns">
+              <button class="p-yes" id="rYes" type="button"></button>
+              <button class="p-no" id="rNo" type="button"></button>
+            </div>
+            <div class="r-info" id="rInfo"></div>
+          </div>
+          <div class="r-note" data-i18n="restNote">깨우기는 사람이 내쉰 숨(이산화탄소)만 추정해요. 배기가스(일산화탄소)는 알 수 없어요.</div>
+        </div>
+
+        <div class="toast-wrap" id="toastWrap" hidden>
+          <div class="toast"><div id="toastT"></div><div class="en-line" id="toastEn" hidden></div></div>
+        </div>
+
+        <!-- 도착 카드 -->
+        <div class="overlay" id="arrival" hidden>
+          <div class="a-card">
+            <div class="a-top" data-i18n="arrTop">오늘의 주행</div>
+            <div class="a-head" id="aHead"></div>
+            <div class="a-head-en" id="aHeadEn" hidden></div>
+            <div class="a-metrics" id="aMetrics"></div>
+            <div class="a-air" id="aAir"></div>
+            <div class="a-lines" id="aLines"></div>
+            <div class="a-trust" id="aTrust" hidden>
+              <div class="a-trust-q" id="aTrustQ"></div>
+              <div class="en-line" id="aTrustEn" hidden></div>
+            </div>
+            <div class="a-btns">
+              <button class="a-yes" id="aTrustYes" type="button" hidden></button>
+              <button class="a-no" id="aTrustNo" type="button" hidden></button>
+              <button class="a-ok" id="aOk" type="button" data-i18n="ok">확인</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actbar" id="actbar" hidden>
+      <button type="button" class="yes" id="xYes"></button>
+      <button type="button" class="no" id="xNo"></button>
+      <button type="button" class="yes" id="xTrustYes"></button>
+      <button type="button" class="no" id="xTrustNo"></button>
+      <button type="button" class="okb" id="xOk" data-i18n="ok">확인</button>
+    </div>
+  </div>
+
+  <div class="under">
+    <p class="gloss" id="subtitle" aria-live="polite"></p>
+    <button type="button" class="key" id="btnVoice" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span id="btnVoiceT"></span></button>
+  </div>
+
+  <h2 class="log-h" data-i18n="sdkTitle">차가 받은 제어</h2>
+  <ul class="sdk" id="sdkLog"></ul>
+</section>
+
+<div class="strip" id="strip" role="group" aria-labelledby="stripName">
+  <span class="sr" id="stripName" data-i18n="stripName">운전석 조작</span>
+  <div class="seg gear" id="segGear" role="group" aria-label="기어">
+    <button type="button" data-gear="PARK">P</button>
+    <button type="button" data-gear="REVERSE">R</button>
+    <button type="button" data-gear="NEUTRAL">N</button>
+    <button type="button" data-gear="DRIVE">D</button>
+  </div>
+  <button type="button" class="key" id="swWiper" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span data-i18n="wiper">와이퍼</span></button>
+  <button type="button" class="key" id="swBeam" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span data-i18n="lowBeam">하향등</span></button>
+  <div class="turn" role="group" aria-labelledby="turnName">
+    <span class="turn-l" id="turnName" data-i18n="turn">깜빡이</span>
+    <button type="button" class="key" id="turnL" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span aria-hidden="true">&#9664;</span></button>
+    <button type="button" class="key" id="turnR" aria-pressed="false"><span aria-hidden="true">&#9654;</span><span class="dot" aria-hidden="true"></span></button>
+  </div>
+  <button type="button" class="key" id="swAttn" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span data-i18n="attn">졸음 경고</span></button>
+  <button type="button" class="key" id="btnSteer" hidden></button>
+  <button type="button" class="key" id="swAuto" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span data-i18n="autoBtn">차 자동 공조</span></button>
+  <button type="button" class="key" id="btnTrip" data-i18n="tripBtn">+2시간 주행</button>
+  <button type="button" class="key" id="btnEta" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span data-i18n="etaBtn">도착 4분 전</span></button>
+  <button type="button" class="key" id="btnWithin" data-i18n="stopWithin">쉼터 도착</button>
+  <button type="button" class="key" id="swTrust" aria-pressed="false"><span class="dot" aria-hidden="true"></span><span data-i18n="trustBtn">맡기기</span></button>
+</div>
+
+</main>
+
+<details class="evbox" id="evBox">
+  <summary id="evSum"></summary>
+  <ul class="evlog" id="evLog"></ul>
+</details>
+
+</div>
+
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+/*__APP__*/
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 낮 테마(기본). Pleos 순정 화면의 밝은 톤에 맞춘다. 색 값은 ui/theme/Tokens.kt 의 낮 배경과 같다 -->
+    <style name="Theme.Kkaeugi" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F3F4F6</item>
+        <item name="android:statusBarColor">#F3F4F6</item>
+        <item name="android:navigationBarColor">#F3F4F6</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
